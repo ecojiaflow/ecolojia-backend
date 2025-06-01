@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-export async function PUT(req: NextRequest, { params }: any) {
+interface Context {
+  params: {
+    id: string;
+  };
+}
+
+export async function PUT(req: NextRequest, context: Context) {
   try {
-    const id = params.id;
+    const id = context.params.id;
     const body = await req.json();
 
     const updatedProduct = await prisma.product.update({
