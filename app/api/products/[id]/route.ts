@@ -1,27 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma';
 
-// Initialiser Prisma (ou ajustez selon votre configuration)
-const prisma = new PrismaClient();
+export async function PUT(req: NextRequest, context: { [key: string]: any }) {
+  const id = context?.params?.id;
 
-// Définir le type pour les données de mise à jour
-type ProductUpdateData = Partial<{
-  name: string;
-  description: string;
-  price: number;
-  category: string;
-  imageUrl: string;
-  // Ajoutez ici les autres champs de votre modèle Product selon votre schéma Prisma
-}>;
+  if (!id) {
+    return new NextResponse('ID manquant dans l’URL', { status: 400 });
+  }
 
-export async function PUT(
-  req: NextRequest,
-  context: { params: { id: string } }
-) {
-  const { id } = context.params;
-  
   try {
-    const body = await req.json() as ProductUpdateData;
+    const body = await req.json();
 
     console.log('🔧 ID reçu :', id);
     console.log('🔧 Body reçu :', JSON.stringify(body, null, 2));
@@ -32,7 +20,7 @@ export async function PUT(
     });
 
     return NextResponse.json(updatedProduct);
-  } catch (error: unknown) {
+  } catch (error) {
     const message = error instanceof Error ? error.message : 'Erreur inconnue';
     console.error('❌ Erreur PUT /api/products/[id]', message);
     return new NextResponse(`Erreur serveur: ${message}`, { status: 500 });
