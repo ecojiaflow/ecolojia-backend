@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-export async function PUT(req: NextRequest, context: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Record<string, string> }) {
   try {
-    const id = context.params.id;
+    const id = params.id;
     const body = await req.json();
 
     const updatedProduct = await prisma.product.update({
@@ -11,10 +11,9 @@ export async function PUT(req: NextRequest, context: { params: { id: string } })
       data: body,
     });
 
-    return new NextResponse(JSON.stringify(updatedProduct), { status: 200 });
+    return NextResponse.json(updatedProduct);
   } catch (error) {
-    console.error('❌ Erreur PUT /api/products/[id]:', error);
+    console.error('Erreur PUT /products/[id]', error);
     return new NextResponse('Erreur serveur', { status: 500 });
   }
 }
-
