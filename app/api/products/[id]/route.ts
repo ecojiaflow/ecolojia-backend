@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-interface Context {
-  params: {
-    id: string;
-  };
-}
-
-export async function PUT(req: NextRequest, context: Context) {
-  const id = context.params.id;
+export async function PUT(req: NextRequest, context: any) {
+  const id = context?.params?.id;
 
   if (!id) {
     return new NextResponse('ID manquant dans l’URL', { status: 400 });
@@ -27,9 +21,9 @@ export async function PUT(req: NextRequest, context: Context) {
 
     return NextResponse.json(updatedProduct);
   } catch (error) {
-    console.error('❌ Erreur PUT /api/products/[id]', (error as Error).message || error);
-    return new NextResponse(`Erreur serveur: ${(error as Error).message || 'inconnue'}`, {
-      status: 500,
-    });
+    const message = error instanceof Error ? error.message : 'Erreur inconnue';
+    console.error('❌ Erreur PUT /api/products/[id]', message);
+    return new NextResponse(`Erreur serveur: ${message}`, { status: 500 });
   }
 }
+
