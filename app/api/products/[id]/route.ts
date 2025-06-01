@@ -1,11 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-// @ts-expect-error Next.js App Router doesn't export valid types for context
-export async function PUT(req: NextRequest, context) {
+interface Context {
+  params: {
+    id: string;
+  };
+}
+
+export async function PUT(req: NextRequest, context: Context) {
+  const id = context.params.id;
+
+  if (!id) {
+    return new NextResponse('ID manquant dans l’URL', { status: 400 });
+  }
+
   try {
-    const id = context.params.id;
     const body = await req.json();
+
+    console.log('🔧 ID reçu :', id);
+    console.log('🔧 Body reçu :', JSON.stringify(body, null, 2));
 
     const updatedProduct = await prisma.product.update({
       where: { id },
@@ -13,8 +26,10 @@ export async function PUT(req: NextRequest, context) {
     });
 
     return NextResponse.json(updatedProduct);
-  } catch (error) {
-    console.error('❌ Erreur PUT /products/[id]', error);
-    return new NextResponse('Erreur serveur', { status: 500 });
+  } catch (error: any) {
+    console.error('❌ Erreur PUT /api/products/[id]', error.message || error);
+    return new NextResponse(`Erreur serveur: ${error.message || 'inconnue'}`, {
+      status: 500,
+    });
   }
 }
