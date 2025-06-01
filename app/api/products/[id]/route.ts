@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-export async function PUT(req: NextRequest, { params }: { params: Record<string, string> }) {
+export async function PUT(req: NextRequest, { params }: any) {
   try {
     const id = params.id;
     const body = await req.json();
@@ -13,7 +13,7 @@ export async function PUT(req: NextRequest, { params }: { params: Record<string,
 
     return NextResponse.json(updatedProduct);
   } catch (error) {
-    console.error('Erreur PUT /products/[id]', error);
+    console.error('❌ Erreur PUT /products/[id]', error);
     return new NextResponse('Erreur serveur', { status: 500 });
   }
 }
