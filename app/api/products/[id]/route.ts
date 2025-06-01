@@ -26,9 +26,9 @@ export async function PUT(req: NextRequest, context: Context) {
     });
 
     return NextResponse.json(updatedProduct);
-  } catch (error: any) {
-    console.error('❌ Erreur PUT /api/products/[id]', error.message || error);
-    return new NextResponse(`Erreur serveur: ${error.message || 'inconnue'}`, {
+  } catch (error) {
+    console.error('❌ Erreur PUT /api/products/[id]', (error as Error).message || error);
+    return new NextResponse(`Erreur serveur: ${(error as Error).message || 'inconnue'}`, {
       status: 500,
     });
   }
