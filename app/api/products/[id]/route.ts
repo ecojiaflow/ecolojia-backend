@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma'; // Ajustez le chemin selon votre structure
+import { PrismaClient } from '@prisma/client';
 
-// Définir le type au début du fichier
+// Initialiser Prisma (ou ajustez selon votre configuration)
+const prisma = new PrismaClient();
+
+// Définir le type pour les données de mise à jour
 type ProductUpdateData = Partial<{
   name: string;
   description: string;
@@ -13,9 +16,9 @@ type ProductUpdateData = Partial<{
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
-  const { id } = params;
+  const { id } = context.params;
   
   try {
     const body = await req.json() as ProductUpdateData;
