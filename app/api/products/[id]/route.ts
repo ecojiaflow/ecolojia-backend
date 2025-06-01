@@ -20,7 +20,7 @@ try {
   });
 
   return NextResponse.json(updatedProduct);
-} catch (error) {
+} catch (error: unknown) {
   const message = error instanceof Error ? error.message : 'Erreur inconnue';
   console.error('❌ Erreur PUT /api/products/[id]', message);
   return new NextResponse(`Erreur serveur: ${message}`, { status: 500 });
