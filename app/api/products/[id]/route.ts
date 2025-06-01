@@ -1,18 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-type ContextType = {
-  params: {
-    id?: string;
-    [key: string]: string | undefined;
-  };
-};
+export async function PUT(req: NextRequest, context) {
+  const id = context?.params?.id;
 
-export async function PUT(req: NextRequest, context: ContextType) {
-  const id = context.params.id;
-
-  if (!id) {
-    return new NextResponse('ID manquant dans l’URL', { status: 400 });
+  if (!id || typeof id !== 'string') {
+    return new NextResponse('ID manquant ou invalide', { status: 400 });
   }
 
   try {
