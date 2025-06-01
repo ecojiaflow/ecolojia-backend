@@ -1,29 +1,27 @@
-import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+// Définir le type au début du fichier ou dans un fichier de types séparé
+type ProductUpdateData = Partial<{
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  imageUrl: string;
+  // Ajoutez ici les autres champs de votre modèle Product selon votre schéma Prisma
+}>;
 
-export async function PUT(req: NextRequest, context: any) {
-  const id = context?.params?.id;
+try {
+  const body = await req.json() as ProductUpdateData;
 
-  if (!id) {
-    return new NextResponse('ID manquant dans l’URL', { status: 400 });
-  }
+  console.log('🔧 ID reçu :', id);
+  console.log('🔧 Body reçu :', JSON.stringify(body, null, 2));
 
-  try {
-    const body = await req.json();
+  const updatedProduct = await prisma.product.update({
+    where: { id },
+    data: body,
+  });
 
-    console.log('🔧 ID reçu :', id);
-    console.log('🔧 Body reçu :', JSON.stringify(body, null, 2));
-
-    const updatedProduct = await prisma.product.update({
-      where: { id },
-      data: body,
-    });
-
-    return NextResponse.json(updatedProduct);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Erreur inconnue';
-    console.error('❌ Erreur PUT /api/products/[id]', message);
-    return new NextResponse(`Erreur serveur: ${message}`, { status: 500 });
-  }
+  return NextResponse.json(updatedProduct);
+} catch (error) {
+  const message = error instanceof Error ? error.message : 'Erreur inconnue';
+  console.error('❌ Erreur PUT /api/products/[id]', message);
+  return new NextResponse(`Erreur serveur: ${message}`, { status: 500 });
 }
-
