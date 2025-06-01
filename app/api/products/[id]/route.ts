@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-export async function PUT(req: NextRequest, context: { params: { id: string } }) {
+// @ts-expect-error Next.js App Router doesn't export valid types for context
+export async function PUT(req: NextRequest, context) {
   try {
     const id = context.params.id;
     const body = await req.json();
