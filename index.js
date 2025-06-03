@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const { PrismaClient } = require('@prisma/client');
-
+const fetch = require('node-fetch'); // ← nécessaire si pas natif dans ton Node env
 
 dotenv.config();
 const app = express();
@@ -31,6 +31,28 @@ app.post('/api/products', async (req, res) => {
   });
 
   res.status(201).json(product);
+});
+
+// POST /api/suggest → passe la requête à n8n webhook
+app.post('/api/suggest', async (req, res) => {
+  try {
+    const { query, zone, lang } = req.body;
+    if (!query || !zone || !lang) {
+      return res.status(400).json({ error: 'query, zone and lang required' });
+    }
+
+    const response = await fetch(process.env.N8N_SUGGEST_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, zone, lang })
+    });
+
+    const result = await response.json();
+    res.json(result);
+  } catch (err) {
+    console.error('Erreur IA suggest:', err);
+    res.status(500).json({ error: 'Erreur lors de la suggestion IA' });
+  }
 });
 
 // Lancement du serveur
