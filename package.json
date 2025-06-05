@@ -4,8 +4,8 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-    "dev": "node index.js",
-    "start": "node index.js",
+    "dev": "prisma generate && node index.js",
+    "start": "prisma generate && node index.js",
     "build": "prisma generate",
     "lint": "echo 'No lint configured'"
   },
