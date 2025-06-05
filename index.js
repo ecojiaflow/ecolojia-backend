@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const { PrismaClient } = require('@prisma/client');
-const fetch = require('node-fetch'); // ← nécessaire si pas natif dans ton Node env
+const fetch = require('node-fetch'); // nécessaire pour n8n si non global
 
 dotenv.config();
 const app = express();
@@ -11,29 +11,59 @@ const prisma = new PrismaClient();
 app.use(cors());
 app.use(express.json());
 
-// GET /api/products → liste les produits
-app.get('/api/products', async (req, res) => {
-  const products = await prisma.product.findMany({
-    orderBy: { createdAt: 'desc' },
-  });
-  res.json(products);
-});
-
-// POST /api/products → ajoute un produit
-app.post('/api/products', async (req, res) => {
-  const { title, description } = req.body;
-  if (!title || !description) {
-    return res.status(400).json({ error: 'title and description required' });
+// ✅ GET /api/prisma/products → liste les produits
+app.get('/api/prisma/products', async (req, res) => {
+  try {
+    const products = await prisma.product.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json(products);
+  } catch (error) {
+    console.error('GET error:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
   }
-
-  const product = await prisma.product.create({
-    data: { title, description },
-  });
-
-  res.status(201).json(product);
 });
 
-// POST /api/suggest → passe la requête à n8n webhook
+// ✅ POST /api/prisma/products → ajoute un produit
+app.post('/api/prisma/products', async (req, res) => {
+  try {
+    const {
+      name, slug, resume_fr, resume_en, tags,
+      zones_dispo, criteria_score, eco_score,
+      ai_confidence, confidence_pct, confidence_color,
+      affiliate_url, suggested_by_ai, lang,
+      verified_status, expiry_date
+    } = req.body;
+
+    const product = await prisma.product.create({
+      data: {
+        name,
+        slug,
+        resume_fr,
+        resume_en,
+        tags,
+        zones_dispo,
+        criteria_score,
+        eco_score,
+        ai_confidence,
+        confidence_pct,
+        confidence_color,
+        affiliate_url,
+        suggested_by_ai,
+        lang,
+        verified_status,
+        expiry_date: expiry_date ? new Date(expiry_date) : null
+      }
+    });
+
+    res.status(201).json(product);
+  } catch (error) {
+    console.error('POST error:', error);
+    res.status(400).json({ error: 'Erreur ajout produit' });
+  }
+});
+
+// ✅ POST /api/suggest → passe la requête à n8n
 app.post('/api/suggest', async (req, res) => {
   try {
     const { query, zone, lang } = req.body;
@@ -55,7 +85,8 @@ app.post('/api/suggest', async (req, res) => {
   }
 });
 
-// Lancement du serveur
-app.listen(process.env.PORT || 3000, () =>
-  console.log('✅ API running on port 3000')
-);
+// ✅ Lancement serveur
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`✅ API running on port ${PORT}`);
+});
