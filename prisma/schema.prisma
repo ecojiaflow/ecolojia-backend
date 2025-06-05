@@ -1,16 +1,4 @@
 generator client {
-  provider = "prisma-client-js"
-  binaryTargets = ["debian-openssl-3.0.x"]
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-model Product {
-  id          String   @id @default(uuid())
-  title       String
-  description String
-  createdAt   DateTime @default(now())
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x"] // ajoute cette ligne
 }
