@@ -2,9 +2,10 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const { PrismaClient } = require('@prisma/client');
-const fetch = require('node-fetch'); // nécessaire pour n8n si non global
+const fetch = require('node-fetch'); // requis pour n8n
 
 dotenv.config();
+
 const app = express();
 const prisma = new PrismaClient();
 
@@ -83,6 +84,16 @@ app.post('/api/suggest', async (req, res) => {
     console.error('Erreur IA suggest:', err);
     res.status(500).json({ error: 'Erreur lors de la suggestion IA' });
   }
+});
+
+// ✅ Route test GET /
+app.get('/', (req, res) => {
+  res.send('Hello from Ecolojia backend!');
+});
+
+// ✅ Route santé GET /health
+app.get('/health', (req, res) => {
+  res.json({ status: 'up' });
 });
 
 // ✅ Lancement serveur
