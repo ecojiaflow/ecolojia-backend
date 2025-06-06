@@ -3,6 +3,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const { PrismaClient } = require('@prisma/client');
 const fetch = require('node-fetch'); // requis pour n8n
+const { execSync } = require('child_process');
 
 dotenv.config();
 
@@ -94,6 +95,17 @@ app.get('/', (req, res) => {
 // ✅ Route santé GET /health
 app.get('/health', (req, res) => {
   res.json({ status: 'up' });
+});
+
+// 🛠️ Route temporaire pour initialiser la BDD à distance
+app.get('/init-db', async (req, res) => {
+  try {
+    execSync('npx prisma db push');
+    res.send('✅ Base de données synchronisée avec Prisma.');
+  } catch (error) {
+    console.error('❌ Erreur db push:', error);
+    res.status(500).send('Erreur lors du db push');
+  }
 });
 
 // ✅ Lancement serveur
