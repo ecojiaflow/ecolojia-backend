@@ -1,12 +1,35 @@
 // prisma/schema.prisma
 
-// ✅ source PostgreSQL (Railway)
+// ✅ Connexion PostgreSQL (Render)
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+// ✅ Génération client Prisma
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-1.1.x"]
+}
+
+// ✅ Modèle "product" conforme au backend Express
+model product {
+  id                String   @id @default(cuid())
+  name              String
+  slug              String
+  resume_fr         String?
+  resume_en         String?
+  tags              String[]
+  zones_dispo       String[]
+  criteria_score    Json
+  eco_score         Float
+  ai_confidence     Float
+  confidence_pct    Int
+  confidence_color  String
+  affiliate_url     String?
+  suggested_by_ai   Boolean
+  lang              String
+  verified_status   Boolean
+  expiry_date       DateTime?
+  createdAt         DateTime @default(now())
 }
