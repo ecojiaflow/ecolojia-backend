@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient, ConfidenceColor, VerifiedStatus } = require('@prisma/client');
 const fetch = require('node-fetch');
 const { execSync } = require('child_process');
 
@@ -47,10 +47,8 @@ app.post('/api/prisma/products', async (req, res) => {
         eco_score: data.eco_score,
         ai_confidence: data.ai_confidence,
         confidence_pct: data.confidence_pct,
-        confidence_color: ["green", "yellow", "red"].includes(data.confidence_color)
-          ? data.confidence_color
-          : "yellow",
-        verified_status: data.verified_status === "verified" ? "verified" : "manual_review",
+        confidence_color: ConfidenceColor[data.confidence_color] || ConfidenceColor.yellow,
+        verified_status: VerifiedStatus[data.verified_status] || VerifiedStatus.manual_review,
         resume_fr: data.resume_fr,
         resume_en: data.resume_en,
         enriched_at: new Date(data.enriched_at),
@@ -97,7 +95,7 @@ app.get('/health', (req, res) => {
   res.json({ status: 'up' });
 });
 
-// ✅ GET /init-db (temporaire pour test db push)
+// ✅ GET /init-db
 app.get('/init-db', async (req, res) => {
   try {
     execSync('npx prisma db push');
@@ -108,7 +106,7 @@ app.get('/init-db', async (req, res) => {
   }
 });
 
-// ✅ Launch server
+// ✅ Lancement serveur
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ API running on port ${PORT}`);
