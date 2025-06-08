@@ -13,7 +13,7 @@ const prisma = new PrismaClient();
 app.use(cors());
 app.use(express.json());
 
-// ✅ GET /api/prisma/products → liste les produits
+// ✅ GET /api/prisma/products → liste tous les produits
 app.get('/api/prisma/products', async (req, res) => {
   try {
     const products = await prisma.product.findMany({
@@ -26,7 +26,7 @@ app.get('/api/prisma/products', async (req, res) => {
   }
 });
 
-// ✅ POST /api/prisma/products → ajoute un produit
+// ✅ POST /api/prisma/products → ajoute un produit complet
 app.post('/api/prisma/products', async (req, res) => {
   try {
     const data = req.body;
@@ -52,8 +52,8 @@ app.post('/api/prisma/products', async (req, res) => {
         resume_fr: data.resume_fr,
         resume_en: data.resume_en,
         enriched_at: new Date(data.enriched_at),
-        created_at: new Date(data.created_at)
-      }
+        created_at: new Date(data.created_at),
+      },
     });
 
     res.status(201).json(product);
@@ -63,7 +63,7 @@ app.post('/api/prisma/products', async (req, res) => {
   }
 });
 
-// ✅ POST /api/suggest → proxy vers n8n
+// ✅ POST /api/suggest → proxy vers webhook n8n
 app.post('/api/suggest', async (req, res) => {
   try {
     const { query, zone, lang } = req.body;
@@ -74,4 +74,40 @@ app.post('/api/suggest', async (req, res) => {
     const response = await fetch(process.env.N8N_SUGGEST_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      bo
+      body: JSON.stringify({ query, zone, lang }),
+    });
+
+    const result = await response.json();
+    res.json(result);
+  } catch (err) {
+    console.error('Erreur IA suggest:', err);
+    res.status(500).json({ error: 'Erreur lors de la suggestion IA' });
+  }
+});
+
+// ✅ Route GET /
+app.get('/', (req, res) => {
+  res.send('Hello from Ecolojia backend!');
+});
+
+// ✅ Route santé GET /health
+app.get('/health', (req, res) => {
+  res.json({ status: 'up' });
+});
+
+// ✅ Init BDD (prisma db push)
+app.get('/init-db', async (req, res) => {
+  try {
+    execSync('npx prisma db push');
+    res.send('✅ Base de données synchronisée avec Prisma.');
+  } catch (error) {
+    console.error('❌ Erreur db push:', error);
+    res.status(500).send('Erreur lors du db push');
+  }
+});
+
+// ✅ Lancement serveur
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`✅ API running on port ${PORT}`);
+});
