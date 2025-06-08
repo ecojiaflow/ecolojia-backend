@@ -13,11 +13,11 @@ const prisma = new PrismaClient();
 app.use(cors());
 app.use(express.json());
 
-// ✅ GET /api/prisma/products → liste tous les produits
+// ✅ GET /api/prisma/products
 app.get('/api/prisma/products', async (req, res) => {
   try {
     const products = await prisma.product.findMany({
-      orderBy: { created_at: 'desc' },
+      orderBy: { created_at: 'desc' }
     });
     res.json(products);
   } catch (error) {
@@ -26,7 +26,7 @@ app.get('/api/prisma/products', async (req, res) => {
   }
 });
 
-// ✅ POST /api/prisma/products → ajoute un produit complet
+// ✅ POST /api/prisma/products
 app.post('/api/prisma/products', async (req, res) => {
   try {
     const data = req.body;
@@ -47,13 +47,15 @@ app.post('/api/prisma/products', async (req, res) => {
         eco_score: data.eco_score,
         ai_confidence: data.ai_confidence,
         confidence_pct: data.confidence_pct,
-        confidence_color: data.confidence_color,
-        verified_status: data.verified_status,
+        confidence_color: ["green", "yellow", "red"].includes(data.confidence_color)
+          ? data.confidence_color
+          : "yellow",
+        verified_status: data.verified_status === "verified" ? "verified" : "manual_review",
         resume_fr: data.resume_fr,
         resume_en: data.resume_en,
         enriched_at: new Date(data.enriched_at),
-        created_at: new Date(data.created_at),
-      },
+        created_at: new Date(data.created_at)
+      }
     });
 
     res.status(201).json(product);
@@ -63,7 +65,7 @@ app.post('/api/prisma/products', async (req, res) => {
   }
 });
 
-// ✅ POST /api/suggest → proxy vers webhook n8n
+// ✅ POST /api/suggest
 app.post('/api/suggest', async (req, res) => {
   try {
     const { query, zone, lang } = req.body;
@@ -74,7 +76,7 @@ app.post('/api/suggest', async (req, res) => {
     const response = await fetch(process.env.N8N_SUGGEST_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query, zone, lang }),
+      body: JSON.stringify({ query, zone, lang })
     });
 
     const result = await response.json();
@@ -85,17 +87,17 @@ app.post('/api/suggest', async (req, res) => {
   }
 });
 
-// ✅ Route GET /
+// ✅ GET /
 app.get('/', (req, res) => {
   res.send('Hello from Ecolojia backend!');
 });
 
-// ✅ Route santé GET /health
+// ✅ GET /health
 app.get('/health', (req, res) => {
   res.json({ status: 'up' });
 });
 
-// ✅ Init BDD (prisma db push)
+// ✅ GET /init-db (temporaire pour test db push)
 app.get('/init-db', async (req, res) => {
   try {
     execSync('npx prisma db push');
@@ -106,7 +108,7 @@ app.get('/init-db', async (req, res) => {
   }
 });
 
-// ✅ Lancement serveur
+// ✅ Launch server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ API running on port ${PORT}`);
