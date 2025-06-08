@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const { PrismaClient } = require('@prisma/client');
-const fetch = require('node-fetch'); // requis pour n8n
+const fetch = require('node-fetch');
 const { execSync } = require('child_process');
 
 dotenv.config();
@@ -17,7 +17,7 @@ app.use(express.json());
 app.get('/api/prisma/products', async (req, res) => {
   try {
     const products = await prisma.product.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: { created_at: 'desc' },
     });
     res.json(products);
   } catch (error) {
@@ -29,32 +29,30 @@ app.get('/api/prisma/products', async (req, res) => {
 // ✅ POST /api/prisma/products → ajoute un produit
 app.post('/api/prisma/products', async (req, res) => {
   try {
-    const {
-      name, slug, resume_fr, resume_en, tags,
-      zones_dispo, criteria_score, eco_score,
-      ai_confidence, confidence_pct, confidence_color,
-      affiliate_url, suggested_by_ai, lang,
-      verified_status, expiry_date
-    } = req.body;
+    const data = req.body;
 
     const product = await prisma.product.create({
       data: {
-        name,
-        slug,
-        resume_fr,
-        resume_en,
-        tags,
-        zones_dispo,
-        criteria_score,
-        eco_score,
-        ai_confidence,
-        confidence_pct,
-        confidence_color,
-        affiliate_url,
-        suggested_by_ai,
-        lang,
-        verified_status,
-        expiry_date: expiry_date ? new Date(expiry_date) : null
+        id: data.id,
+        title: data.title,
+        description: data.description,
+        slug: data.slug,
+        brand: data.brand,
+        category: data.category,
+        tags: data.tags,
+        images: data.images,
+        zones_dispo: data.zones_dispo,
+        prices: data.prices,
+        affiliate_url: data.affiliate_url,
+        eco_score: data.eco_score,
+        ai_confidence: data.ai_confidence,
+        confidence_pct: data.confidence_pct,
+        confidence_color: data.confidence_color,
+        verified_status: data.verified_status,
+        resume_fr: data.resume_fr,
+        resume_en: data.resume_en,
+        enriched_at: new Date(data.enriched_at),
+        created_at: new Date(data.created_at)
       }
     });
 
@@ -65,7 +63,7 @@ app.post('/api/prisma/products', async (req, res) => {
   }
 });
 
-// ✅ POST /api/suggest → passe la requête à n8n
+// ✅ POST /api/suggest → proxy vers n8n
 app.post('/api/suggest', async (req, res) => {
   try {
     const { query, zone, lang } = req.body;
@@ -76,40 +74,4 @@ app.post('/api/suggest', async (req, res) => {
     const response = await fetch(process.env.N8N_SUGGEST_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query, zone, lang })
-    });
-
-    const result = await response.json();
-    res.json(result);
-  } catch (err) {
-    console.error('Erreur IA suggest:', err);
-    res.status(500).json({ error: 'Erreur lors de la suggestion IA' });
-  }
-});
-
-// ✅ Route test GET /
-app.get('/', (req, res) => {
-  res.send('Hello from Ecolojia backend!');
-});
-
-// ✅ Route santé GET /health
-app.get('/health', (req, res) => {
-  res.json({ status: 'up' });
-});
-
-// 🛠️ Route temporaire pour initialiser la BDD à distance
-app.get('/init-db', async (req, res) => {
-  try {
-    execSync('npx prisma db push');
-    res.send('✅ Base de données synchronisée avec Prisma.');
-  } catch (error) {
-    console.error('❌ Erreur db push:', error);
-    res.status(500).send('Erreur lors du db push');
-  }
-});
-
-// ✅ Lancement serveur
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`✅ API running on port ${PORT}`);
-});
+      bo
