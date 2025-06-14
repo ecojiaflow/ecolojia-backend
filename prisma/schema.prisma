@@ -40,5 +40,5 @@ model Product {
   enriched_at      DateTime
   created_at       DateTime @default(now())
 
-  @@map("product") // 🔧 force le nom exact en base = "product"
+  @@map("product") // ✅ la table dans PostgreSQL = product
 }
