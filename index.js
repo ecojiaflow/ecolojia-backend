@@ -17,7 +17,7 @@ app.use(express.json());
 // ✅ GET tous les produits publics
 app.get('/api/products', async (req, res) => {
   try {
-    const products = await prisma.product.findMany({
+    const products = await prisma.Product.findMany({
       where: { verified_status: 'verified' },
       orderBy: { created_at: 'desc' }
     });
@@ -32,7 +32,7 @@ app.get('/api/products', async (req, res) => {
 app.get('/api/products/slug/:slug', async (req, res) => {
   const { slug } = req.params;
   try {
-    const product = await prisma.product.findUnique({
+    const product = await prisma.Product.findUnique({
       where: { slug }
     });
     if (!product) return res.status(404).json({ error: 'Produit non trouvé' });
@@ -49,7 +49,7 @@ app.post('/api/prisma/products', async (req, res) => {
     const data = req.body;
     console.log('📥 Données reçues :', JSON.stringify(data, null, 2));
 
-    const product = await prisma.product.create({
+    const product = await prisma.Product.create({
       data: {
         id: data.id,
         title: data.title,
@@ -84,7 +84,7 @@ app.post('/api/prisma/products', async (req, res) => {
 // ✅ GET brut (n8n/debug)
 app.get('/api/prisma/products', async (req, res) => {
   try {
-    const products = await prisma.product.findMany({
+    const products = await prisma.Product.findMany({
       orderBy: { created_at: 'desc' }
     });
     res.json(products);
@@ -94,6 +94,7 @@ app.get('/api/prisma/products', async (req, res) => {
   }
 });
 
+// ✅ Suggestion IA
 app.post('/api/suggest', async (req, res) => {
   try {
     const { query, zone, lang } = req.body;
@@ -115,6 +116,7 @@ app.post('/api/suggest', async (req, res) => {
   }
 });
 
+// ✅ Routes santé/dev
 app.get('/', (req, res) => res.send('Hello from Ecolojia backend!'));
 app.get('/health', (req, res) => res.json({ status: 'up' }));
 app.get('/init-db', async (req, res) => {
@@ -127,6 +129,7 @@ app.get('/init-db', async (req, res) => {
   }
 });
 
+// ✅ Démarrage
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ API running on port ${PORT}`);
