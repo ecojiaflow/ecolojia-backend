@@ -6,6 +6,7 @@ const fetch = require('node-fetch');
 const { execSync } = require('child_process');
 
 dotenv.config();
+console.log('✅ DATABASE_URL =', process.env.DATABASE_URL || '❌ NON DÉFINIE');
 
 const app = express();
 const prisma = new PrismaClient();
@@ -13,23 +14,43 @@ const prisma = new PrismaClient();
 app.use(cors());
 app.use(express.json());
 
-// ✅ GET /api/prisma/products
-app.get('/api/prisma/products', async (req, res) => {
+// ✅ GET /api/products - Liste des produits publics
+app.get('/api/products', async (req, res) => {
   try {
     const products = await prisma.product.findMany({
+      where: { verified_status: 'verified' },
       orderBy: { created_at: 'desc' }
     });
     res.json(products);
   } catch (error) {
-    console.error('GET error:', error);
+    console.error('GET /api/products error:', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
 
-// ✅ POST /api/prisma/products
+// ✅ GET /api/products/slug/:slug
+app.get('/api/products/slug/:slug', async (req, res) => {
+  const { slug } = req.params;
+  try {
+    const product = await prisma.product.findUnique({
+      where: { slug }
+    });
+
+    if (!product) return res.status(404).json({ error: 'Produit non trouvé' });
+    res.json(product);
+  } catch (error) {
+    console.error('GET /api/products/slug/:slug error:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// ✅ POST /api/prisma/products - Ajout avec logs
 app.post('/api/prisma/products', async (req, res) => {
   try {
     const data = req.body;
+
+    // ✅ LOG POUR DEBUG Render
+    console.log('📥 Données reçues :', JSON.stringify(data, null, 2));
 
     const product = await prisma.product.create({
       data: {
@@ -37,18 +58,18 @@ app.post('/api/prisma/products', async (req, res) => {
         title: data.title,
         description: data.description,
         slug: data.slug,
-        brand: data.brand,
+        brand: data.brand || null,
         category: data.category,
-        tags: data.tags,
-        images: data.images,
-        zones_dispo: data.zones_dispo,
-        prices: data.prices,
-        affiliate_url: data.affiliate_url,
+        tags: data.tags || [],
+        images: data.images || [],
+        zones_dispo: data.zones_dispo || [],
+        prices: data.prices || {},
+        affiliate_url: data.affiliate_url || null,
         eco_score: data.eco_score,
         ai_confidence: data.ai_confidence,
         confidence_pct: data.confidence_pct,
-        confidence_color: ConfidenceColor[data.confidence_color] || ConfidenceColor.yellow,
-        verified_status: VerifiedStatus[data.verified_status] || VerifiedStatus.manual_review,
+        confidence_color: data.confidence_color,
+        verified_status: data.verified_status,
         resume_fr: data.resume_fr,
         resume_en: data.resume_en,
         enriched_at: new Date(data.enriched_at),
@@ -58,12 +79,25 @@ app.post('/api/prisma/products', async (req, res) => {
 
     res.status(201).json(product);
   } catch (error) {
-    console.error('POST error:', error);
-    res.status(400).json({ error: 'Erreur ajout produit' });
+    console.error('❌ Erreur ajout produit :', error);
+    res.status(400).json({ error: error.message || 'Erreur ajout produit' });
   }
 });
 
-// ✅ POST /api/suggest
+// ✅ GET /api/prisma/products - Accès brut
+app.get('/api/prisma/products', async (req, res) => {
+  try {
+    const products = await prisma.product.findMany({
+      orderBy: { created_at: 'desc' }
+    });
+    res.json(products);
+  } catch (error) {
+    console.error('GET /api/prisma/products error:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// ✅ POST /api/suggest - IA (via n8n)
 app.post('/api/suggest', async (req, res) => {
   try {
     const { query, zone, lang } = req.body;
@@ -85,17 +119,11 @@ app.post('/api/suggest', async (req, res) => {
   }
 });
 
-// ✅ GET /
-app.get('/', (req, res) => {
-  res.send('Hello from Ecolojia backend!');
-});
+// ✅ Santé & debug
+app.get('/', (req, res) => res.send('Hello from Ecolojia backend!'));
+app.get('/health', (req, res) => res.json({ status: 'up' }));
 
-// ✅ GET /health
-app.get('/health', (req, res) => {
-  res.json({ status: 'up' });
-});
-
-// ✅ GET /init-db
+// ✅ Sync DB Prisma (dev)
 app.get('/init-db', async (req, res) => {
   try {
     execSync('npx prisma db push');
@@ -106,7 +134,7 @@ app.get('/init-db', async (req, res) => {
   }
 });
 
-// ✅ Lancement serveur
+// ✅ Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ API running on port ${PORT}`);
