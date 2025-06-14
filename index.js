@@ -14,7 +14,7 @@ const prisma = new PrismaClient();
 app.use(cors());
 app.use(express.json());
 
-// ✅ GET /api/products - Liste des produits publics
+// ✅ GET tous les produits publics
 app.get('/api/products', async (req, res) => {
   try {
     const products = await prisma.product.findMany({
@@ -28,14 +28,13 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
-// ✅ GET /api/products/slug/:slug
+// ✅ GET produit par slug
 app.get('/api/products/slug/:slug', async (req, res) => {
   const { slug } = req.params;
   try {
     const product = await prisma.product.findUnique({
       where: { slug }
     });
-
     if (!product) return res.status(404).json({ error: 'Produit non trouvé' });
     res.json(product);
   } catch (error) {
@@ -44,12 +43,10 @@ app.get('/api/products/slug/:slug', async (req, res) => {
   }
 });
 
-// ✅ POST /api/prisma/products - Ajout avec logs
+// ✅ POST produit avec debug log
 app.post('/api/prisma/products', async (req, res) => {
   try {
     const data = req.body;
-
-    // ✅ LOG POUR DEBUG Render
     console.log('📥 Données reçues :', JSON.stringify(data, null, 2));
 
     const product = await prisma.product.create({
@@ -84,7 +81,7 @@ app.post('/api/prisma/products', async (req, res) => {
   }
 });
 
-// ✅ GET /api/prisma/products - Accès brut
+// ✅ GET brut (n8n/debug)
 app.get('/api/prisma/products', async (req, res) => {
   try {
     const products = await prisma.product.findMany({
@@ -97,7 +94,6 @@ app.get('/api/prisma/products', async (req, res) => {
   }
 });
 
-// ✅ POST /api/suggest - IA (via n8n)
 app.post('/api/suggest', async (req, res) => {
   try {
     const { query, zone, lang } = req.body;
@@ -119,11 +115,8 @@ app.post('/api/suggest', async (req, res) => {
   }
 });
 
-// ✅ Santé & debug
 app.get('/', (req, res) => res.send('Hello from Ecolojia backend!'));
 app.get('/health', (req, res) => res.json({ status: 'up' }));
-
-// ✅ Sync DB Prisma (dev)
 app.get('/init-db', async (req, res) => {
   try {
     execSync('npx prisma db push');
@@ -134,7 +127,6 @@ app.get('/init-db', async (req, res) => {
   }
 });
 
-// ✅ Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ API running on port ${PORT}`);
